@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "custom",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "ApplicationId": "",
+    "ApplicationSecret": "",
+    "RefreshToken": "",
+    "TenantId": "",
+  }
+}

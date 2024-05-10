@@ -10,10 +10,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/microsoft/kiota-abstractions-go"
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
+	azpolicy "github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	az "github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
 	"github.com/rs/zerolog/log"
-	azidentity "github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 )
 
 type TokenResponse struct {
@@ -26,16 +27,35 @@ type TokenResponse struct {
 	IDToken      string `json:"id_token"`
 }
 
-type CustomRequestAdapter struct {
-	underlyingAdapter abstractions.RequestAdapter
-	token             string
+type CustomTokenCredential struct {
+	Token string
 }
 
-func NewCustomRequestAdapter(adapter abstractions.RequestAdapter, token string) *CustomRequestAdapter {
-	return &CustomRequestAdapter{
-		underlyingAdapter: adapter,
-		token:             token,
+func (c *CustomTokenCredential) GetToken(ctx context.Context, options azpolicy.TokenRequestOptions) (azcore.AccessToken, error) {
+	token := azcore.AccessToken{}
+	token.Token = c.Token
+	return token, nil
+}
+
+func NewGraphServiceClientWithToken(token string) (*msgraphsdk.GraphServiceClient, error) {
+	validhosts := []string{"graph.microsoft.com", "graph.microsoft.us", "dod-graph.microsoft.us", "graph.microsoft.de", "microsoftgraph.chinacloudapi.cn", "canary.graph.microsoft.com"}
+	scopes := []string{"https://graph.microsoft.com/.default"}
+	var customCreds azcore.TokenCredential = &CustomTokenCredential{
+		Token: token,
 	}
+
+	auth, err := az.NewAzureIdentityAuthenticationProviderWithScopesAndValidHosts(customCreds, scopes, validhosts)
+	if err != nil {
+		return nil, err
+	}
+
+	adapter, err := msgraphsdk.NewGraphRequestAdapter(auth)
+	if err != nil {
+		return nil, err
+	}
+
+	client := msgraphsdk.NewGraphServiceClient(adapter)
+	return client, nil
 }
 
 func GraphAuthenticate(next http.Handler) http.Handler {
@@ -44,14 +64,12 @@ func GraphAuthenticate(next http.Handler) http.Handler {
 		clientId := os.Getenv("ClientId")
 		clientSecret := os.Getenv("ClientSecret")
 		refreshToken := os.Getenv("RefreshToken")
-
 		form := url.Values{}
 		form.Set("client_id", clientId)
 		form.Set("scope", "https://graph.microsoft.com/.default")
 		form.Set("refresh_token", refreshToken)
 		form.Set("grant_type", "refresh_token")
 		form.Set("client_secret", clientSecret)
-
 		req, err := http.NewRequest("POST", fmt.Sprintf("https://login.microsoftonline.com/%s/oauth2/v2.0/token", tenantId), strings.NewReader(form.Encode()))
 		if err != nil {
 			log.Error().Err(err)
@@ -76,17 +94,12 @@ func GraphAuthenticate(next http.Handler) http.Handler {
 		var tokenResponse TokenResponse
 		json.Unmarshal(body, &tokenResponse)
 
-		id, err := azidentity.NewGraphServiceClient()
-
-		adapter := NewCustomRequestAdapter()
-		graph := msgraphsdk.NewGraphServiceClient(adapter)
-
-		//pass the graph client in context
+		graph, err := NewGraphServiceClientWithToken(tokenResponse.AccessToken)
 		if err != nil {
-			fmt.Printf("Error creating client: %v\n", err)
-			return
+			log.Error().Err(err).Msg("")
 		}
 
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), "graph", graph)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

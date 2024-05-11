@@ -9,11 +9,13 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	//"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	azpolicy "github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	az "github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
+	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	"github.com/rs/zerolog/log"
 )
 
@@ -29,11 +31,13 @@ type TokenResponse struct {
 
 type CustomTokenCredential struct {
 	Token string
+	//ExpiresOn time.Time
 }
 
 func (c *CustomTokenCredential) GetToken(ctx context.Context, options azpolicy.TokenRequestOptions) (azcore.AccessToken, error) {
 	token := azcore.AccessToken{}
 	token.Token = c.Token
+	//token.ExpiresOn = c.ExpiresOn
 	return token, nil
 }
 
@@ -42,6 +46,7 @@ func NewGraphServiceClientWithToken(token string) (*msgraphsdk.GraphServiceClien
 	scopes := []string{"https://graph.microsoft.com/.default"}
 	var customCreds azcore.TokenCredential = &CustomTokenCredential{
 		Token: token,
+		//ExpiresOn: time.Now().AddDate(0, 0, 1),
 	}
 
 	auth, err := az.NewAzureIdentityAuthenticationProviderWithScopesAndValidHosts(customCreds, scopes, validhosts)
@@ -98,6 +103,26 @@ func GraphAuthenticate(next http.Handler) http.Handler {
 		if err != nil {
 			log.Error().Err(err).Msg("")
 		}
+
+		stuff, err := graph.Domains().Get(context.Background(), nil)
+		if err != nil {
+			switch err.(type) {
+			case *odataerrors.ODataError:
+				typed := err.(*odataerrors.ODataError)
+				fmt.Printf("error:", typed.GetErrorEscaped())
+				if terr := typed.GetErrorEscaped(); terr != nil {
+					fmt.Printf("code: %s", *terr.GetCode())
+					fmt.Printf("msg: %s", *terr.GetMessage())
+					return
+				}
+			default:
+					log.Error().Err(err)
+					return
+			}
+		}
+
+		d = *stuff.GetValue()
+		log.Info().Any("stuff", d).Msg("")
 
 		ctx := context.WithValue(r.Context(), "graph", graph)
 		next.ServeHTTP(w, r.WithContext(ctx))

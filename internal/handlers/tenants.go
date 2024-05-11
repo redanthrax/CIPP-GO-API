@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
@@ -16,6 +17,11 @@ func ListTenants(w http.ResponseWriter, r *http.Request) {
 	}
 
 	graph := graphReceive.(*msgraphsdk.GraphServiceClient)
-	//tenants := graph.TenantRelationships().Get()
-	log.Info().Any("tenants", tenants).Msg("")
+	tenants, err := graph.TenantRelationships().Get(context.Background(), nil)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		return
+	}
+
+	log.Info().Any("tenants", *tenants.GetMultiTenantOrganization().GetDisplayName()).Msg("")
 }

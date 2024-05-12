@@ -17,6 +17,8 @@ import (
 	az "github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	"github.com/rs/zerolog/log"
+	msgraphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
+	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 type TokenResponse struct {
@@ -98,31 +100,11 @@ func GraphAuthenticate(next http.Handler) http.Handler {
 
 		var tokenResponse TokenResponse
 		json.Unmarshal(body, &tokenResponse)
-
 		graph, err := NewGraphServiceClientWithToken(tokenResponse.AccessToken)
 		if err != nil {
 			log.Error().Err(err).Msg("")
+			return
 		}
-
-		stuff, err := graph.Domains().Get(context.Background(), nil)
-		if err != nil {
-			switch err.(type) {
-			case *odataerrors.ODataError:
-				typed := err.(*odataerrors.ODataError)
-				fmt.Printf("error:", typed.GetErrorEscaped())
-				if terr := typed.GetErrorEscaped(); terr != nil {
-					fmt.Printf("code: %s", *terr.GetCode())
-					fmt.Printf("msg: %s", *terr.GetMessage())
-					return
-				}
-			default:
-					log.Error().Err(err)
-					return
-			}
-		}
-
-		d = *stuff.GetValue()
-		log.Info().Any("stuff", d).Msg("")
 
 		ctx := context.WithValue(r.Context(), "graph", graph)
 		next.ServeHTTP(w, r.WithContext(ctx))

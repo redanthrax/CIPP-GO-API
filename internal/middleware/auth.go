@@ -15,10 +15,7 @@ import (
 	azpolicy "github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
 	az "github.com/microsoftgraph/msgraph-sdk-go-core/authentication"
-	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	"github.com/rs/zerolog/log"
-	msgraphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
-	"github.com/microsoftgraph/msgraph-sdk-go/models"
 )
 
 type TokenResponse struct {

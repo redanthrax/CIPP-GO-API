@@ -19,13 +19,13 @@ func ListTenants(w http.ResponseWriter, r *http.Request) {
 	graph := graphReceive.(*msgraphsdk.GraphServiceClient)
 	customers, err := graph.TenantRelationships().DelegatedAdminCustomers().Get(context.Background(), nil)
 	if err != nil {
-		tools.GraphError(err)
+		tools.GraphError(err, w)
 		return
 	}
 
 	iter, err := msgraphcore.NewPageIterator[models.DelegatedAdminCustomerable](customers, graph.GetAdapter(), models.CreateDelegatedAdminCustomerCollectionResponseFromDiscriminatorValue)
 	if err != nil {
-		tools.GraphError(err)
+		tools.GraphError(err, w)
 		return
 	}
 
@@ -40,7 +40,7 @@ func ListTenants(w http.ResponseWriter, r *http.Request) {
 	})
 
 	if err != nil {
-		tools.GraphError(err)
+		tools.GraphError(err, w)
 		return
 	}
 

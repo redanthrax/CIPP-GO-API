@@ -1,11 +1,13 @@
 package tools
 
 import (
+	"net/http"
+
 	"github.com/microsoftgraph/msgraph-sdk-go/models/odataerrors"
 	"github.com/rs/zerolog/log"
 )
 
-func GraphError(err error) {
+func GraphError(err error, w http.ResponseWriter) {
 	if err != nil {
 		switch err := err.(type) {
 		case *odataerrors.ODataError:
@@ -17,5 +19,7 @@ func GraphError(err error) {
 		default:
 			log.Error().Err(err).Msg("")
 		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }

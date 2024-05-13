@@ -16,7 +16,7 @@ func main() {
 	var r *chi.Mux = chi.NewRouter()
 	handlers.Handle(r)
 	log.Info().Msg("Starting API Server...")
-	err := http.ListenAndServe(":7071", r)
+	err := http.ListenAndServe("localhost:7071", r)
 	if err != nil {
 		log.Error().Err(err)
 	}

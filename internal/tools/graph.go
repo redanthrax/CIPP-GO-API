@@ -9,10 +9,10 @@ func GraphError(err error) {
 	if err != nil {
 		switch err := err.(type) {
 		case *odataerrors.ODataError:
-			log.Error().Any("Graph Error", err.GetErrorEscaped())
+			log.Error().Any("Graph Error", err.GetErrorEscaped()).Msg("")
 			if terr := err.GetErrorEscaped(); terr != nil {
-				log.Error().Str("code", *terr.GetCode())
-				log.Error().Str("msg", *terr.GetMessage())
+				log.Error().Str("code", *terr.GetCode()).Msg("")
+				log.Error().Str("msg", *terr.GetMessage()).Msg("")
 			}
 		default:
 			log.Error().Err(err).Msg("")

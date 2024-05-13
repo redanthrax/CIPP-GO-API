@@ -2,32 +2,40 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 
 	msgraphsdk "github.com/microsoftgraph/msgraph-sdk-go"
+	msgraphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 	"github.com/microsoftgraph/msgraph-sdk-go/models"
+	api "github.com/redanthrax/cipp-go-api/api"
 	"github.com/redanthrax/cipp-go-api/internal/tools"
 	"github.com/rs/zerolog/log"
-	msgraphcore "github.com/microsoftgraph/msgraph-sdk-go-core"
 )
 
 func ListTenants(w http.ResponseWriter, r *http.Request) {
 	log.Debug().Msg("List Tenants")
 	graphReceive := r.Context().Value("graph")
 	graph := graphReceive.(*msgraphsdk.GraphServiceClient)
-	tenants, err := graph.TenantRelationships().Get(context.Background(), nil)
+	customers, err := graph.TenantRelationships().DelegatedAdminCustomers().Get(context.Background(), nil)
 	if err != nil {
 		tools.GraphError(err)
 		return
 	}
 
-	// Use PageIterator to iterate through all users
-	pageIterator, err := msgraphcore.NewPageIterator[models.TenantRelationshipable](
-		tenants,
-		graph.GetAdapter(),
-		models.CreateTenantRelationshipFromDiscriminatorValue)
-	err = pageIterator.Iterate(context.Background(), func(tenant models.TenantRelationshipable) bool {
-		log.Info().Str("tenant", *tenant.GetMultiTenantOrganization().GetDisplayName())
+	iter, err := msgraphcore.NewPageIterator[models.DelegatedAdminCustomerable](customers, graph.GetAdapter(), models.CreateDelegatedAdminCustomerCollectionResponseFromDiscriminatorValue)
+	if err != nil {
+		tools.GraphError(err)
+		return
+	}
+
+	var tenants []api.Tenant
+	err = iter.Iterate(r.Context(), func(rel models.DelegatedAdminCustomerable) bool {
+		tenants = append(tenants, api.Tenant{
+			ID:   *rel.GetId(),
+			Name: *rel.GetDisplayName(),
+		})
+
 		return true
 	})
 
@@ -36,5 +44,8 @@ func ListTenants(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Info().Any("tenants", *tenants.GetMultiTenantOrganization().GetDisplayName()).Msg("")
+	if err := json.NewEncoder(w).Encode(tenants); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

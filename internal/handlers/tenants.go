@@ -35,8 +35,8 @@ func ListTenants(w http.ResponseWriter, r *http.Request) {
 	var tenants []api.Tenant
 	err = iter.Iterate(r.Context(), func(rel models.DelegatedAdminCustomerable) bool {
 		tenants = append(tenants, api.Tenant{
-			ID:   *rel.GetId(),
-			Name: *rel.GetDisplayName(),
+      CustomerId: *rel.GetId(),
+      DisplayName: *rel.GetDisplayName(),
 		})
 
 		return true

@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	//"time"
+	"time"
 
 	"github.com/Azure/azure-sdk-for-go/sdk/azcore"
 	azpolicy "github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
@@ -30,7 +30,7 @@ type TokenResponse struct {
 
 type CustomTokenCredential struct {
 	Token string
-	//ExpiresOn time.Time
+	ExpiresOn time.Time
 }
 
 func (c *CustomTokenCredential) GetToken(ctx context.Context, options azpolicy.TokenRequestOptions) (azcore.AccessToken, error) {
@@ -64,10 +64,15 @@ func NewGraphServiceClientWithToken(token string) (*msgraphsdk.GraphServiceClien
 
 func GraphAuthenticate(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tenantId := os.Getenv("TenantID")
+		tenantId := os.Getenv("TenantId")
 		clientId := os.Getenv("ClientId")
 		clientSecret := os.Getenv("ClientSecret")
 		refreshToken := os.Getenv("RefreshToken")
+    if clientId == "" {
+      log.Error().Msg("Client ID cannot be empty")
+      return
+    }
+
 		form := url.Values{}
 		form.Set("client_id", clientId)
 		form.Set("scope", "https://graph.microsoft.com/.default")

@@ -23,7 +23,10 @@ func ListTenants(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	iter, err := msgraphcore.NewPageIterator[models.DelegatedAdminCustomerable](customers, graph.GetAdapter(), models.CreateDelegatedAdminCustomerCollectionResponseFromDiscriminatorValue)
+	iter, err := msgraphcore.NewPageIterator[models.DelegatedAdminCustomerable](
+    customers,
+    graph.GetAdapter(),
+    models.CreateDelegatedAdminCustomerCollectionResponseFromDiscriminatorValue)
 	if err != nil {
 		tools.GraphError(err, w)
 		return

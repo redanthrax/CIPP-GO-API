@@ -12,12 +12,16 @@ import (
 
 func main() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	godotenv.Overload()
+  err := godotenv.Load()
+  if err != nil {
+    log.Error().Err(err).Msg("")
+  }
+
 	var r *chi.Mux = chi.NewRouter()
 	handlers.Handle(r)
 	log.Info().Msg("Starting API Server...")
-	err := http.ListenAndServe("localhost:7071", r)
+	err = http.ListenAndServe("localhost:7071", r)
 	if err != nil {
-		log.Error().Err(err)
+		log.Error().Err(err).Msg("")
 	}
 }

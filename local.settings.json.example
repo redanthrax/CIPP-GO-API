@@ -6,6 +6,6 @@
     "ApplicationId": "",
     "ApplicationSecret": "",
     "RefreshToken": "",
-    "TenantId": "",
+    "TenantId": ""
   }
 }

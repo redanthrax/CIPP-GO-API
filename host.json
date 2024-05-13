@@ -17,7 +17,7 @@
       "defaultExecutablePath": "cippgoapi",
       "workingDirectory": "",
       "arguments": []
-    }
+    },
+    "enableForwardingHttpRequest": true
   },
-  "enableForwardingHttpRequest": true
 }

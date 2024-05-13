@@ -108,6 +108,7 @@ func GraphAuthenticate(next http.Handler) http.Handler {
 			return
 		}
 
+    w.Header().Set("Content-Type", "application/json")
 		ctx := context.WithValue(r.Context(), "graph", graph)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})

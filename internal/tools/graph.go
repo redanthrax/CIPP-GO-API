@@ -20,6 +20,8 @@ func GraphError(err error, w http.ResponseWriter) {
 			log.Error().Err(err).Msg("")
 		}
 
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		if w != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
 	}
 }

@@ -1,0 +1,16 @@
+{
+  "bindings": [
+    {
+      "name": "queue",
+      "type": "queueTrigger",
+      "direction": "in",
+      "queueName": "queue"
+    },
+    {
+      "type": "queue",
+      "direction": "out",
+      "name": "queueout",
+      "queueName": "queue"
+    }
+  ]
+}

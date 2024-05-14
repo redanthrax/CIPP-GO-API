@@ -11,8 +11,8 @@ func Handle(r *chi.Mux) {
 	r.Use(mid.RequestLogger)
 	r.Use(mid.GraphAuthenticate)
 	r.Route("/api", func(r chi.Router) {
-    r.Route("/ListTenants", func(r chi.Router) {
-      r.Get("/", ListTenants)
-    })
+		r.Route("/ListTenants", func(r chi.Router) {
+			r.Get("/", ListTenants)
+		})
 	})
 }

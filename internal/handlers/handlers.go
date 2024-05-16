@@ -21,7 +21,6 @@ func (h *Handler) InitRoutes() http.Handler {
   r := chi.NewRouter()
 	r.Use(middleware.StripSlashes)
 	r.Use(mid.RequestLogger)
-	r.Use(mid.GraphAuthenticate)
 	r.Route("/api", func(r chi.Router) {
 		r.Route("/ListTenants", func(r chi.Router) {
 			r.Get("/", h.ListTenants)
@@ -29,4 +28,8 @@ func (h *Handler) InitRoutes() http.Handler {
 	})
 
   return r
+}
+
+func (h *Handler) HandleError(err error, w http.ResponseWriter) {
+  http.Error(w, err.Error(), http.StatusInternalServerError)
 }

@@ -11,6 +11,7 @@ import (
 	"github.com/redanthrax/cipp-go-api/internal/handlers"
 	"github.com/redanthrax/cipp-go-api/internal/repository"
 	"github.com/redanthrax/cipp-go-api/internal/service"
+	"github.com/redanthrax/cipp-go-api/pkg/msgraph"
 	"github.com/redanthrax/cipp-go-api/server"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -32,7 +33,12 @@ func main() {
   }
 
   repo := repository.NewRepository(db)
-  services := service.NewService(repo)
+  graph, err := msgraph.Authenticate()
+  if err != nil {
+    log.Fatal().Err(err).Msg("graph authentication failed")
+  }
+
+  services := service.NewService(repo, graph)
   hand := handlers.NewHandler(services)
 	listenAddr := "8080"
 	if val, ok := os.LookupEnv("FUNCTIONS_CUSTOMHANDLER_PORT"); ok {

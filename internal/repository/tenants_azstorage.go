@@ -75,19 +75,16 @@ func (r *TenantsAzStorage) AddTenant(tenant models.Tenant) error {
   }
   entity := aztables.EDMEntity {
     Entity: aztables.Entity {
+      RowKey: tenant.CustomerId,
       PartitionKey: "tenants",
     },
     Properties: properties,
   }
 
-  log.Info().Any("entity", entity).Msg("")
-
   marshalled, err := json.Marshal(entity)
   if err != nil {
     return err
   }
-
-  log.Info().Any("marsh", marshalled).Msg("")
 
   _, err = r.tb.AddEntity(context.TODO(), marshalled, nil)
   if err != nil {

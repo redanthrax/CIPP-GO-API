@@ -1,4 +1,4 @@
-package data
+package models
 
 import "time"
 
@@ -24,3 +24,8 @@ type Tenant struct {
 	RelationshipCount        int       `json:"relationshipCount"`
 	RelationshipEnd          time.Time `json:"relationshipEnd"`
 }
+
+type Tenants struct {
+  Tenants []Tenant `json:"Tenants"`
+}
+

@@ -7,7 +7,7 @@ import (
 	"github.com/redanthrax/cipp-go-api/pkg/msgraph"
 )
 
-func TestListTenants(t *testing.T) {
+func TestListGraphTenants(t *testing.T) {
 	err := godotenv.Load("../../.env")
 	if err != nil {
 		t.Error(err)
@@ -31,3 +31,4 @@ func TestListTenants(t *testing.T) {
 		t.Error("retrieved 0 tenants")
 	}
 }
+
